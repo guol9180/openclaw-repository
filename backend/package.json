@@ -1,0 +1,21 @@
+{
+  "name": "openclaw-dashboard-backend",
+  "version": "1.0.0",
+  "description": "OpenClaw Control Center - Backend API Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "fastify": "^4.26.2",
+    "@fastify/cors": "^9.0.1",
+    "@fastify/static": "^7.0.1",
+    "socket.io": "^4.7.5",
+    "systeminformation": "^5.22.11",
+    "pino": "^8.19.0",
+    "pino-pretty": "^11.0.0",
+    "chokidar": "^3.6.0"
+  }
+}
