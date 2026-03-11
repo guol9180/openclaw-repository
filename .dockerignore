@@ -1,30 +1,6 @@
-# 忽略开发依赖
 node_modules
 npm-debug.log
-
-# 忽略源代码（只复制需要的文件）
-frontend/src
-frontend/public
-frontend/*.json
-frontend/*.js
-frontend/*.ts
-
-# 保留构建产物
-!frontend/dist
-
-# 环境变量
-.env
-.env.local
-
-# Git
 .git
-.gitignore
-
-# Docker
-Dockerfile
-docker-compose.yml
-.dockerignore
-
-# 文档
-README.md
+.github
 *.md
+.env*
