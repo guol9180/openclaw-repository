@@ -1,150 +1,150 @@
-# 🦀 OpenClaw Control Center
+# 🦀 OpenClaw 控制中心
 
-Real-time AI Agent Monitoring Dashboard with Cyberpunk UI.
+赛博朋克风格的 AI Agent 实时监控面板。
 
 ![Dashboard Preview](./preview.png)
 
-## Features
+## 功能特性
 
-- **AI Core Panel** - Monitor requests/sec, latency, active tasks, and token usage
-- **Network Map** - 2D visualization of MCP/Skills/Tools network topology
-- **System Status** - CPU, Memory, Disk, Network usage monitoring
-- **Event Log** - Real-time scrolling log stream
-- **Performance Charts** - Historical metrics visualization
+- **AI 核心面板** - 监控每秒请求数、延迟、活跃任务、Token 使用量
+- **网络拓扑图** - MCP/Skills/Tools 网络结构的 2D 可视化
+- **系统状态** - CPU、内存、磁盘、网络使用监控
+- **事件日志** - 实时滚动日志流
+- **性能图表** - 历史指标可视化
 
-## Tech Stack
+## 技术栈
 
-### Backend
+### 后端
 - Node.js + Fastify
 - Socket.io (WebSocket)
 - SystemInformation
 
-### Frontend
+### 前端
 - React 18 + TypeScript
 - TailwindCSS
-- PixiJS (2D Graphics)
-- ECharts (Charts)
-- Framer Motion (Animations)
+- PixiJS (2D 图形)
+- ECharts (图表)
+- Framer Motion (动画)
 
-## Quick Start
+## 快速开始
 
 ```bash
-# Install dependencies
+# 安装依赖
 npm run install:all
 
-# Development mode
+# 开发模式
 npm run dev
 
-# Production build
+# 生产构建
 npm run build
 npm start
 ```
 
-## Architecture
+## 系统架构
 
 ```
 OpenClaw
    │
-   │ logs / CLI / events
+   │ 日志 / CLI / 事件
    ▼
-Event Collector
+事件收集器
    │
-Backend API Server (Fastify + Socket.io)
+后端 API 服务器 (Fastify + Socket.io)
    │
-WebSocket (1s interval)
+WebSocket (1秒间隔)
    ▼
-Frontend Dashboard UI (React + PixiJS)
+前端面板 UI (React + PixiJS)
 ```
 
-## Dashboard Modules
+## 面板模块
 
-### 1. AI Core Panel
-- Requests per second
-- Latency (ms)
-- Active tasks
-- Error count
-- Token usage (input/output)
+### 1. AI 核心面板
+- 每秒请求数
+- 延迟 (ms)
+- 活跃任务数
+- 错误计数
+- Token 使用量 (输入/输出)
 
-### 2. Network Map
-Interactive 2D network topology showing:
-- OpenClaw AI Core
-- MCP Servers
-- Skills Engine
-- Web Tools
-- Browser Automation
+### 2. 网络拓扑图
+交互式 2D 网络拓扑，展示：
+- OpenClaw AI 核心
+- MCP 服务器
+- Skills 引擎
+- Web 工具
+- 浏览器自动化
 
-Features:
-- Click nodes for details
-- Animated data flow particles
-- Real-time activity highlighting
+功能：
+- 点击节点查看详情
+- 数据流动画粒子
+- 实时活动高亮
 
-### 3. System Status
-- CPU usage (with color coding)
-- Memory usage
-- Disk usage
-- Network I/O
-- System uptime
+### 3. 系统状态
+- CPU 使用率（颜色编码）
+- 内存使用
+- 磁盘使用
+- 网络 I/O
+- 系统运行时间
 
-### 4. Event Log
-Real-time log stream with:
-- Type icons (request, mcp, skill, response, error)
-- Color-coded levels
-- Auto-scroll
-- Timestamp display
+### 4. 事件日志
+实时日志流，包含：
+- 类型图标（请求、MCP、技能、响应、错误）
+- 颜色编码级别
+- 自动滚动
+- 时间戳显示
 
-### 5. Performance Chart
-- Requests/sec trend line
-- Latency trend line
-- 30-second rolling window
+### 5. 性能图表
+- 请求数/秒趋势线
+- 延迟趋势线
+- 30秒滚动窗口
 
-## API Endpoints
+## API 接口
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/status` | Full system status |
-| `GET /api/metrics/ai-core` | AI core metrics |
-| `GET /api/network` | Network topology |
-| `GET /api/logs` | Recent logs |
-| `GET /api/metrics/history` | Historical metrics |
+| 接口 | 描述 |
+|------|------|
+| `GET /api/status` | 完整系统状态 |
+| `GET /api/metrics/ai-core` | AI 核心指标 |
+| `GET /api/network` | 网络拓扑 |
+| `GET /api/logs` | 最近日志 |
+| `GET /api/metrics/history` | 历史指标 |
 
-## WebSocket Events
+## WebSocket 事件
 
-### Client → Server
-- `node:click` - Request node details
+### 客户端 → 服务器
+- `node:click` - 请求节点详情
 
-### Server → Client
-- `init` - Initial data on connect
-- `metrics` - Metrics update (1s interval)
-- `log` - New log entry
-- `network:update` - Network activity
-- `node:details` - Node information
+### 服务器 → 客户端
+- `init` - 连接时初始数据
+- `metrics` - 指标更新（1秒间隔）
+- `log` - 新日志条目
+- `network:update` - 网络活动
+- `node:details` - 节点信息
 
-## Development
+## 开发
 
 ```bash
-# Backend only
+# 仅后端
 cd backend && npm run dev
 
-# Frontend only
+# 仅前端
 cd frontend && npm run dev
 ```
 
-## Production
+## 生产部署
 
 ```bash
-# Build frontend
+# 构建前端
 cd frontend && npm run build
 
-# Start server (serves frontend from dist/)
+# 启动服务器（从 dist/ 提供前端）
 cd backend && npm start
 ```
 
-## Configuration
+## 配置
 
-Environment variables:
-- `PORT` - Server port (default: 3001)
-- `HOST` - Server host (default: 0.0.0.0)
+环境变量：
+- `PORT` - 服务器端口（默认：3001）
+- `HOST` - 服务器主机（默认：0.0.0.0）
 
-## License
+## 许可证
 
 MIT
