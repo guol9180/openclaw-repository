@@ -4,9 +4,9 @@
 
 import { Server as HttpServer } from 'http';
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import type { AIState } from '../types/state';
-import type { OpenClawEvent } from '../types/events';
-import type { SystemMetrics, AIMetrics } from '../types/metrics';
+import type { AIState } from '../types/state.js';
+import type { OpenClawEvent } from '../types/events.js';
+import type { SystemMetrics, AIMetrics } from '../types/metrics.js';
 
 export interface WebSocketMessage {
   type: 'init' | 'state_update' | 'event' | 'metrics' | 'task_update';
