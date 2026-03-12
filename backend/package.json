@@ -1,12 +1,14 @@
 {
-  "name": "openclaw-dashboard-backend",
-  "version": "1.0.0",
-  "description": "OpenClaw Control Center - Backend API Server",
-  "main": "server.js",
+  "name": "openclaw-ai-room-backend",
+  "version": "2.0.0",
+  "description": "OpenClaw AI Room - Backend Server",
+  "main": "server.ts",
   "type": "module",
   "scripts": {
+    "dev": "node --loader ts-node/esm server.ts",
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "fastify": "^4.26.2",
@@ -17,5 +19,10 @@
     "pino": "^8.19.0",
     "pino-pretty": "^11.0.0",
     "chokidar": "^3.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.0",
+    "ts-node": "^10.9.2"
   }
 }
