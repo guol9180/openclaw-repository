@@ -3,9 +3,9 @@
  */
 
 import { EventEmitter } from 'events';
-import type { AIState, AIStatus, Position3D, DeviceType } from '../types/state';
-import type { OpenClawEvent, EventType } from '../types/events';
-import { DEVICE_POSITIONS } from '../types/state';
+import type { AIState, AIStatus, Position3D, DeviceType } from '../types/state.js';
+import type { OpenClawEvent, EventType } from '../types/events.js';
+import { DEVICE_POSITIONS } from '../types/state.js';
 
 // 状态转换规则
 const STATE_TRANSITIONS: Record<AIStatus, AIStatus[]> = {
