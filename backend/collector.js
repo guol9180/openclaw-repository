@@ -13,8 +13,10 @@ export function initCollector(eventBus, metrics) {
   let statusInterval;
   let logWatcher;
   
+  // 使用环境变量配置路径，避免硬编码
+  const OPENCLAW_ROOT = process.env.OPENCLAW_PATH || join(process.env.HOME, '.openclaw');
   const OPENCLAW_LOGS = [
-    join(process.env.HOME, '.openclaw/logs'),
+    join(OPENCLAW_ROOT, 'logs'),
     '/var/log/openclaw'
   ];
   
@@ -58,150 +60,123 @@ export function initCollector(eventBus, metrics) {
   // 获取 OpenClaw 状态
   async function collectOpenClawStatus() {
     return new Promise((resolve) => {
-      const proc = spawn('openclaw', ['status', '--json'], {
-        shell: true
+      const child = spawn('openclaw', ['status', '--json'], {
+        shell: true,
+        timeout: 5000
       });
       
-      let output = '';
-      proc.stdout.on('data', (data) => {
-        output += data.toString();
+      let stdout = '';
+      let stderr = '';
+      
+      child.stdout.on('data', (data) => {
+        stdout += data.toString();
       });
       
-      proc.on('close', (code) => {
-        try {
-          if (output && output.includes('{')) {
-            const jsonMatch = output.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              const status = JSON.parse(jsonMatch[0]);
-              metrics.updateOpenClawStatus(status);
-              eventBus.emit('openclaw:status', status);
-            }
+      child.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+      
+      child.on('close', (code) => {
+        if (code === 0 && stdout) {
+          try {
+            const status = JSON.parse(stdout);
+            resolve(status);
+          } catch {
+            resolve(null);
           }
-        } catch (err) {
-          // 解析失败，忽略
+        } else {
+          resolve(null);
         }
-        resolve();
       });
       
-      // 超时处理
-      setTimeout(() => {
-        proc.kill();
-        resolve();
-      }, 5000);
+      child.on('error', () => {
+        resolve(null);
+      });
     });
   }
   
-  // 模拟 AI 核心指标（实际应从 OpenClaw 获取）
-  function generateAICoreMetrics() {
-    const prev = metrics.getAICoreMetrics();
-    const now = Date.now();
+  // 解析日志行
+  function parseLogLine(line) {
+    const timestampMatch = line.match(/\[(\d{4}-\d{2}-\d{2}T[\d:.]+Z?)\]/);
+    const timestamp = timestampMatch ? new Date(timestampMatch[1]) : new Date();
     
-    // 模拟实时数据变化
-    const aiCore = {
-      requestsPerSec: Math.max(0, (prev.requestsPerSec || 5) + (Math.random() - 0.5) * 2),
-      latency: Math.max(10, (prev.latency || 150) + (Math.random() - 0.5) * 30),
-      activeTasks: Math.max(0, Math.min(10, (prev.activeTasks || 3) + Math.floor((Math.random() - 0.5) * 3))),
-      errorCount: Math.max(0, prev.errorCount || 0),
-      tokenUsage: {
-        input: (prev.tokenUsage?.input || 0) + Math.floor(Math.random() * 100),
-        output: (prev.tokenUsage?.output || 0) + Math.floor(Math.random() * 50)
-      },
-      lastUpdate: now
+    let type = 'info';
+    if (line.includes('[ERROR]') || line.includes('error')) type = 'error';
+    else if (line.includes('[WARN]') || line.includes('warn')) type = 'warn';
+    else if (line.includes('[MCP]') || line.includes('mcp')) type = 'mcp';
+    else if (line.includes('[SKILL]') || line.includes('skill')) type = 'skill';
+    else if (line.includes('request') || line.includes('response')) type = 'request';
+    
+    return {
+      timestamp,
+      type,
+      message: line.slice(0, 200)
     };
-    
-    metrics.updateAICoreMetrics(aiCore);
-    
-    // 模拟网络活动
-    if (Math.random() > 0.7) {
-      const nodes = ['web-search', 'skills', 'browser', 'python-mcp'];
-      const from = nodes[Math.floor(Math.random() * nodes.length)];
-      const to = nodes[Math.floor(Math.random() * nodes.length)];
-      if (from !== to) {
-        eventBus.emit('network:update', {
-          type: 'data_flow',
-          from,
-          to,
-          timestamp: now
-        });
-      }
-    }
-    
-    // 模拟日志事件
-    if (Math.random() > 0.6) {
-      const logTypes = [
-        { type: 'request', message: 'AI request received', level: 'info' },
-        { type: 'mcp', message: 'MCP call: web-search', level: 'info' },
-        { type: 'skill', message: 'Skill execution: tavily-search', level: 'info' },
-        { type: 'response', message: 'Response generated', level: 'success' },
-        { type: 'error', message: 'Connection timeout', level: 'error' }
-      ];
-      const log = logTypes[Math.floor(Math.random() * logTypes.length)];
-      eventBus.emit('log', {
-        ...log,
-        id: `log-${now}`,
-        timestamp: now
-      });
-    }
-    
-    return aiCore;
   }
   
-  // 监控日志文件
-  async function watchLogs() {
-    for (const logPath of OPENCLAW_LOGS) {
-      if (existsSync(logPath)) {
+  // 读取最新日志
+  async function readRecentLogs(logPath, lines = 50) {
+    try {
+      if (!existsSync(logPath)) return [];
+      
+      const content = await readFile(logPath, 'utf-8');
+      const logLines = content.split('\n').filter(Boolean).slice(-lines);
+      
+      return logLines.map(parseLogLine);
+    } catch {
+      return [];
+    }
+  }
+  
+  // 启动收集器
+  async function start() {
+    // 定期收集系统指标
+    statusInterval = setInterval(async () => {
+      const systemStatus = await collectSystemMetrics();
+      const openclawStatus = await collectOpenClawStatus();
+      
+      if (systemStatus) {
+        eventBus.emit('system:status', systemStatus);
+      }
+      
+      if (openclawStatus) {
+        eventBus.emit('openclaw:status', openclawStatus);
+      }
+    }, 1000);
+    
+    // 监听日志变化
+    for (const logDir of OPENCLAW_LOGS) {
+      if (existsSync(logDir)) {
         try {
-          const watcher = watch(logPath, { persistent: false });
-          for await (const event of watcher) {
-            if (event.eventType === 'change') {
-              // 读取新日志
-              const content = await readFile(join(logPath, event.filename), 'utf8');
-              const lines = content.split('\n').filter(Boolean);
-              const lastLine = lines[lines.length - 1];
-              if (lastLine) {
-                eventBus.emit('log', {
-                  id: `log-${Date.now()}`,
-                  type: 'system',
-                  message: lastLine,
-                  level: 'info',
-                  timestamp: Date.now()
+          const watcher = watch(logDir);
+          (async () => {
+            for await (const event of watcher) {
+              if (event.eventType === 'change') {
+                const logs = await readRecentLogs(join(logDir, event.filename));
+                logs.forEach(log => {
+                  eventBus.emit('log', log);
+                  metrics.addLog(log);
                 });
               }
             }
-          }
-        } catch (err) {
-          console.error(`监控日志失败 ${logPath}:`, err.message);
+          })();
+        } catch {
+          // 忽略无法监听的目录
         }
       }
     }
   }
   
-  return {
-    start() {
-      console.log('🔍 启动数据收集器...');
-      
-      // 每秒收集指标
-      statusInterval = setInterval(() => {
-        collectSystemMetrics();
-        collectOpenClawStatus();
-        generateAICoreMetrics();
-      }, 1000);
-      
-      // 初始收集
-      collectSystemMetrics();
-      collectOpenClawStatus();
-      
-      // 启动日志监控（异步）
-      watchLogs().catch(console.error);
-      
-      console.log('✅ 数据收集器已启动');
-    },
-    
-    stop() {
-      if (statusInterval) {
-        clearInterval(statusInterval);
-      }
-      console.log('🛑 数据收集器已停止');
+  // 停止收集器
+  function stop() {
+    if (statusInterval) {
+      clearInterval(statusInterval);
     }
+  }
+  
+  start();
+  
+  return {
+    stop
   };
 }
