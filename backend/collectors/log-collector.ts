@@ -6,7 +6,7 @@ import { watch, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { EventEmitter } from 'events';
-import type { RawOpenClawEvent, OpenClawEvent, EventType } from '../types/events';
+import type { RawOpenClawEvent, OpenClawEvent, EventType } from '../types/events.js';
 
 export class LogCollector extends EventEmitter {
   private openclawRoot: string;
