@@ -1,52 +1,10 @@
-import { useState, useEffect, createContext, useContext } from 'react';
-import { io, Socket } from 'socket.io-client';
-import Dashboard from './components/Dashboard';
-import { MetricsData, SystemStatus, LogEntry, NetworkData } from './utils/types';
-
-// WebSocket Context
-const SocketContext = createContext<Socket | null>(null);
-export const useSocket = () => useContext(SocketContext);
-
-// 数据 Context
-interface DataContextType {
-  aiCore: MetricsData | null;
-  system: SystemStatus | null;
-  logs: LogEntry[];
-  network: NetworkData | null;
-  nodeDetails: any;
-}
-
-const DataContext = createContext<DataContextType>({
-  aiCore: null,
-  system: null,
-  logs: [],
-  network: null,
-  nodeDetails: null
-});
-export const useData = () => useContext(DataContext);
+import { AIRoom } from './scenes/AIRoom';
 
 function App() {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [connected, setConnected] = useState(false);
-  const [data, setData] = useState<DataContextType>({
-    aiCore: null,
-    system: null,
-    logs: [],
-    network: null,
-    nodeDetails: null
-  });
+  return <AIRoom />;
+}
 
-  useEffect(() => {
-    // 连接 WebSocket
-    const newSocket = io('/', {
-      path: '/socket.io',
-      transports: ['websocket', 'polling']
-    });
-
-    newSocket.on('connect', () => {
-      console.log('已连接到服务器');
-      setConnected(true);
-    });
+export default App;
 
     newSocket.on('disconnect', () => {
       console.log('与服务器断开连接');
